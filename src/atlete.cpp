@@ -10,6 +10,31 @@ Atlete::~Atlete()
    if(data.distanceAframe != NULL)
       free(data.distanceAframe);
 }
+/**
+ * @brief the function that sets the data from the opecv, and calculated
+ *       the runned speed for each frame, & puts that in de 'speed' array;
+ * @param distanceArray array with the runned distance for each frame
+ * @param len length of each array
+ * @param frameRate framerate of the filmed action
+ * @param realPixelDistance distance of one pixel in real life
+ * @return int -1 on error, 0 on success
+ */
+int Atlete::SetAllData(double* distanceArray, size_t len, 
+                        unsigned int frameRate, double realPixelDistance)
+{
+   if(SetData(distanceArray, len) < 0)
+   {
+      fprintf(stderr, "Atlete::%s; SetData failed\n", __func__);
+      return -1;
+   }
+   if(CalculateSpeed(frameRate, realPixelDistance) < 0)
+   {
+      fprintf(stderr, "Atlete::%s; CalcculateSpeed failed\n", __func__);
+      return -1;
+   }
+   return 0;
+}
+
 
 DataAtlete* Atlete::GetData()
 {

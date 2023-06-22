@@ -24,25 +24,7 @@ int main(int argc, char **argv)
    char *file2 = argv[2];
    double distance = std::stod(argv[3]);
   
-   int64_t length1 = 0;
-   int64_t length2 = 0;
-
-   std::vector<cv::Mat> frames1;
-   std::vector<cv::Mat> frames2;
-
-   if((length1 = GetVideo(file, &frames1) ) < 0)
-   {
-      perror("%s; GetVideo\n");
-      exit(0);
-   }
-   if((length2 = GetVideo(file2, &frames2)) < 0)
-   {
-      perror("%s; GetVideo\n");
-      exit(0);
-   }
-   if(MakeGray(&frames1) != 0){
-      perror("%s; MakeGray canceld\n");
-   }
+   
    return 0;
 
 }
