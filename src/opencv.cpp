@@ -1,9 +1,10 @@
 #include "../inc/opencv.hpp"
 #include <fstream>
 const char* outputFile = "output.txt";
-Media::Media(char* fileName)
+Media::Media(char* fileName, double realDistance)
 {
-   
+   SetRunnedDistance(realDistance);
+
    int length1 = 0;
    if((length1 = GetVideo(fileName, &frames) ) < 0)
    {
@@ -19,23 +20,80 @@ Media::Media(char* fileName)
       return;
    }
    pclose(fp);
-   int i = 0;
+   size_t i = 0;
    double *output = NULL;
    output = GetDataFromFile(output, &i, outputFile);
-   if(i < 0 )
+   if(output == NULL)
    {
       return;
-   }else
-   {  
-      std::cout << "i:" << i << " output in media: " << std::endl;
-      for(int j = 0; j < i; j++)
-      {
-         std::cout << *(output+j) << std::endl;
-      }
    }
    //do something with output
+   if(CalculatedRealDistance() < 0)
+   {
+      exit(0);
+   }
+
    if(output != NULL)
+   {
+      SetHipPoints(output, i);
       free(output);
+   }
+   
+
+}
+//get points of pion
+//calculated realpixel distance between poin by knonw distance & pixel amount
+int Media::CalculatedRealDistance()
+{
+   double output[2];
+   size_t i = 0;
+   const char *fileName = "coordinates.txt";
+   
+   std::ifstream inputFile(fileName);
+   if(!inputFile)
+   {  
+      return -1;
+   }
+   std::string line;
+   while(std::getline(inputFile, line, ','))
+   {
+      output[i] = stod(line);
+      i++;
+   }
+   /*test*/
+   i  = 2;
+   output[0]  = 34;
+   output[1]  = 1600;
+   /*end test*/
+   if(i != 2)
+   {
+      std::cout << __func__ << "i != 2" << std::endl;
+      return -1;
+   }
+   double pixelDistance = output[0] - output[1];
+   pixelDistance = (pixelDistance < 0) ? pixelDistance * -1 : pixelDistance;
+   std::cout << "pixelDistance: " << pixelDistance << std::endl;
+   pixelDistance = GetRunnedDistance() / pixelDistance;
+   std::cout << "pixelDistance: " << pixelDistance << std::endl;
+   SetRealPixelDistance(pixelDistance);
+   return 0;
+}
+/**
+ * @brief set array with the hip points gatherd from the python script
+ * 
+ * @param input 
+ * @param len 
+ */
+void Media::SetHipPoints(double *hipArray, size_t len)
+{
+   for(size_t i = 0 ; i < len; i++)
+   {
+      if(*(hipArray+i) < 1)
+         arrayHipPoints[i] = -1;
+      else 
+         arrayHipPoints[i] = *(hipArray+i);
+   }
+   SetArrayHipPointLen(len);
 }
 /**
  * @brief 
@@ -44,19 +102,18 @@ Media::Media(char* fileName)
  * @param file file name of file to read 
  * @return int -1 on failure, size of output on succes
  */
-double* Media::GetDataFromFile(double *output, int *i, const char* file)
+double* Media::GetDataFromFile(double *output, size_t *i, const char* file)
 {
    
    std::ifstream inputFile(file);
    if(!inputFile)
    {  
-      *i = -1;
       return NULL;
    }
-   std::string line;
+   std::string line = "0";
    while(std::getline(inputFile, line, ','))
    {
-      if(line[0] != '-' && line[0] != '0')
+      if(line[0] == ' ')
       {
          printf("\nfout\n");
       }
@@ -72,7 +129,10 @@ double* Media::GetDataFromFile(double *output, int *i, const char* file)
             *i = *i + 1;
             output = (double*)realloc(output, sizeof(double)  * *i);
          }
-         output[*(i)-1] = stod(line);
+         double value = stod(line);
+         if(value < 1)
+            value = -1;
+         output[*(i)-1] = value;
       }
    }
    return output;
@@ -91,7 +151,7 @@ int Media::GetVideo(char* fileName, std::vector<cv::Mat> *frames)
       return -1;
    }
    unsigned long long i = 0;
-   for(uint64_t i = 0; i < (uint64_t)cap.get(cv::CAP_PROP_FRAME_COUNT); i++)
+   for(i = 0; i < (uint64_t)cap.get(cv::CAP_PROP_FRAME_COUNT); i++)
    {
       cv::Mat frame;
       cap >> frame;

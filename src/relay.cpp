@@ -16,7 +16,7 @@ Relay::Relay(Atlete *in, Atlete *out)
  * 
  * @return int -1 invalid input values, -2 not fount 0> index in SpeedArray
  */
-int Relay::FindCrossoverPoint()
+int Relay::_FindCrossoverPoint()
 {
    size_t lenD1 = 0, lenD2 = 0;
    lenD1 = incomingRunner->GetLenSpeedArray();
@@ -52,7 +52,14 @@ int Relay::FindCrossoverPoint()
    }
    return -2;
 }
-double Relay::GetDistanceOfFrameNum(double frameNum)
+/**
+ * @brief probably minus distance to begin of pion
+ *    check if data of atlete is set, alse set frameRate;
+ * @param frameNum 
+ * @return double -1 when no data set in atlete or frameNum > data.len
+ *          distance on success
+ */
+double Relay::_GetDistanceOfFrameNum(double frameNum)
 {
    double distance = 0;
    DataAtlete *data = incomingRunner->GetData();
@@ -66,6 +73,12 @@ double Relay::GetDistanceOfFrameNum(double frameNum)
       return -1;
       fprintf(stderr, "Relay::%s, frameNum > data.len...\n", __func__);
    }
+   if(incomingRunner->GetFrameRate() <= 0)
+   {
+      return -1;
+      fprintf(stderr, "Relay::%s, frmaeRate ,= 0\n", __func__);
+   }
+
 
    for(size_t i = 0; i < frameNum; i++)
    {
@@ -73,16 +86,97 @@ double Relay::GetDistanceOfFrameNum(double frameNum)
    }
    return distance;
 }
-double Relay::ExchangeDistance()
+
+/**
+ * @brief 
+ * 
+ * @return int -1 on no frameCrosspoint error, claon success
+ */
+double Relay::_CalculatedExchangeDistance()
 {
-   int frameNum = FindCrossoverPoint();
+   int frameNum = _FindCrossoverPoint();
    if(frameNum < 0)
    {
       fprintf(stderr, "Relay:%s findCross failed: %d\n", __func__, frameNum);
       return -1;
    }
-   return GetDistanceOfFrameNum(frameNum);
+   double distance = _GetDistanceOfFrameNum(frameNum);
+   if(distance  < 0)
+   { 
+      fprintf(stderr, "Relay::%s; distance == 0", __func__);
+      return -1;
+   }
+   SetExchangeDistance(distance);
+   return distance;
 }
+/**
+ * @brief 
+ * 
+ * @param exchangeDistance 
+ * @return double -1 on no valid exchangeDistance( == 0) 
+ * else avg speed 
+ */
+double Relay::_GetAvgSpeedToPoint(Atlete* atlete)
+{
+   //v = s / t 
+   double exchangeDistance = _CalculatedExchangeDistance();
+   if(exchangeDistance <= 0){
+      fprintf(stderr, "Relay::%s; exchangeDistnace == 0", __func__);
+      return -1;
+   }
+
+   //frames per second
+   double t = (double)(1.00 / (double)atlete->GetFrameRate());
+   //time for all frames
+   t = t * atlete->GetAmountFrames();
+   //avg speed 
+   double avgSpeed = exchangeDistance / t;
+   return avgSpeed;
+
+}
+double CalculateRunnedDistanceForTime(Atlete *atlete, double time[0])
+{
+   /*//amount frames for runned time
+   double amountFrames = time[0] / (1/ atlete->GetFrameRate());
+   double *speed = atlete->GetSpeedArray();
+   for(size_t i = 0; i < amountFrames ; i++)
+   {
+
+   }*/
+   return 0;
+}
+int Relay::TimeToReachExchange(double *time, Atlete *incoming, Atlete *outgoing )
+{
+   double speedIn = _GetAvgSpeedToPoint(incoming);
+   double speedOut = _GetAvgSpeedToPoint(outgoing);
+   if(speedIn < 0 || speedOut < 0)
+   {
+      fprintf(stderr, "Relay::%s; _GetAvgSpeedToPoint < 0", __func__);
+      return -1;
+   }
+   //is already set and checked in previous calcualtes, so dont check
+   double distance = GetExchangeDistance();
+   
+   //t = s / v
+   time[0] = distance / speedIn;
+   time[1] = distance / speedOut;
+
+   double timeDif = time[1] - time[0];
+   std::cout <<" timeDif = " << time[1] << " - " << time[0] <<" = " << timeDif << std::endl;
+   if(timeDif < 0) 
+   {
+      fprintf(stderr, "Relay::%s; timeDif is negative, so incoming runner is slower...", __func__);
+      return -1;
+   }  
+   //take speed of first element in array
+   //takeOffDistance = //extra meters to run to get in the same time to exchangepoint
+   //CalculateRunnedDistanceForTime(incoming, time[0]);
+   //CalculateRunnedDistanceForTime(outgoing, time[1]);
+
+   return 0;
+}
+
+
 
 
 //debug

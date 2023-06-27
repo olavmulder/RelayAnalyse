@@ -1,5 +1,10 @@
 #include "../inc/atlete.hpp"
-Atlete::Atlete(){
+
+Atlete::Atlete(Media *f){
+   film = f;
+   int res = SetAllData(film->GetHipPoints(), film->GetArrayHipPointLen(), 
+                        film->GetRealPixelDistance());
+  
    SetLenSpeedArray(0);
 };
 
@@ -19,15 +24,14 @@ Atlete::~Atlete()
  * @param realPixelDistance distance of one pixel in real life
  * @return int -1 on error, 0 on success
  */
-int Atlete::SetAllData(double* distanceArray, size_t len, 
-                        unsigned int frameRate, double realPixelDistance)
+int Atlete::SetAllData(double* hipPoints, size_t len, double realPixelDistance)
 {
-   if(SetData(distanceArray, len) < 0)
+   if(ConvertHipPointToDistancePoints(hipPoints, len, realPixelDistance) < 0)
    {
       fprintf(stderr, "Atlete::%s; SetData failed\n", __func__);
       return -1;
    }
-   if(CalculateSpeed(frameRate, realPixelDistance) < 0)
+   if(CalculateSpeed(realPixelDistance) < 0)
    {
       fprintf(stderr, "Atlete::%s; CalcculateSpeed failed\n", __func__);
       return -1;
@@ -67,14 +71,14 @@ int Atlete::GetSpeedArray(double *s, size_t len)
  * @param len lenght of array
  * @return int -1 on invalid input or malloc error, 0 on valid
  */
-int Atlete::SetData(double* distanceArray, size_t len)
+int Atlete::ConvertHipPointToDistancePoints(double* hipPoints, size_t len, double realPixelDistance)
 {
    if(len <= 0)
    {
       fprintf(stderr, "Atlete::%s; len <= 0\n", __func__);
       return -1;
    }
-   if( distanceArray == NULL)
+   if( hipPoints == NULL)
    {
       fprintf(stderr, "Atlete::%s; distaNceArray == NULL\n", __func__);
       return -1;
@@ -89,10 +93,25 @@ int Atlete::SetData(double* distanceArray, size_t len)
 
    if(data.distanceAframe == NULL)return -1;
    
+   double lastValue = 0;
    for(size_t i = 0; i < data.len ; i++)
    {
-      data.distanceAframe[i] = distanceArray[i];
+      if(hipPoints[i] != -1)
+      {
+         if(lastValue == 0)
+            lastValue = hipPoints[i];
+
+         double pixels = ((hipPoints[i] - lastValue) < 0) ? 
+                  (hipPoints[i] - lastValue) * -1 : (hipPoints[i] - lastValue);
+         double distance = pixels * realPixelDistance;
+         data.distanceAframe[i] = distance;
+         lastValue = hipPoints[i];
+      }
+      else
+         data.distanceAframe[i] = -1;
+      std::cout << "data.distanceAFrame[" << i << "] = " << data.distanceAframe[i] << std::endl;
    }
+
    return 0;
 }
 /**
@@ -102,13 +121,14 @@ int Atlete::SetData(double* distanceArray, size_t len)
  * @param realPixelDistance 
  * @return int length of the set speed array, or -1 on error
  */
-int Atlete::CalculateSpeed(unsigned int frameRate, double realPixelDistance)
+int Atlete::CalculateSpeed(double realPixelDistance)
 {
    if(realPixelDistance <= 0)
    {
       fprintf(stderr, "Atlete::%s; realPixelDistance <= 0\n", __func__);
       return -1;
    }
+   double frameRate = film->GetFrameRate();
    if(frameRate == (double)0)
    {
       fprintf(stderr, "Atlete::%s; frameRate == 0\n", __func__);
@@ -127,7 +147,6 @@ int Atlete::CalculateSpeed(unsigned int frameRate, double realPixelDistance)
 
    //s(distance) = v(speed) * t(time)
    //v  = s/t;
-   //s = amountPixels * distance1pixel
    double frameTime = (double)(1.00 / (double)frameRate);
    if(frameTime <= 0.00)
    {
@@ -136,7 +155,12 @@ int Atlete::CalculateSpeed(unsigned int frameRate, double realPixelDistance)
    }
    for(size_t i = 0; i < data.len; i++)
    {
-      speed[i] = (data.distanceAframe[i]*realPixelDistance) * frameTime;
+      if(data.distanceAframe[i] != -1)
+         speed[i] = (data.distanceAframe[i]) / frameTime;
+      else 
+         speed[i] = -1;
+
+      std::cout << "speed[" << i << "] = " << speed[i] << std::endl;
    }
    SetLenSpeedArray(data.len);
    return data.len;
