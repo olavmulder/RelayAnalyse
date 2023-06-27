@@ -1,0 +1,18 @@
+#exacutables
+main
+test
+
+#media files
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.mpeg
+
+#files
+*.txt
+*.csv
+
+#folders
+.vscode/
+
