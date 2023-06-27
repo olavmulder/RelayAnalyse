@@ -12,7 +12,7 @@ Media::Media(char* fileName)
    }
    FILE *fp;
    char str[100];
-   snprintf(str, sizeof(str), "python3 test.py -f %s", fileName);
+   snprintf(str, sizeof(str), "python3 videoHandling.py -f %s", fileName);
    fp = popen(str, "r");
    if (fp == NULL) {
       printf("Failed to run script\n");
@@ -33,6 +33,7 @@ Media::Media(char* fileName)
          std::cout << *(output+j) << std::endl;
       }
    }
+   //do something with output
    if(output != NULL)
       free(output);
 }
