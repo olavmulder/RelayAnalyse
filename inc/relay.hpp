@@ -9,13 +9,26 @@ class Relay
       Relay(Atlete *a1, Atlete *a2);
       void Print();
      
-      double ExchangeDistance();
+      int TimeToReachExchange(double *time, Atlete *incoming, Atlete *outgoing );
+      
+      void SetExchangeDistance(double d){exchangeDistance =d;};
+      double GetExchangeDistance(){return exchangeDistance;};
+
    private:
+      //variables needed futher in calculation
+      double exchangeDistance = 0;
       Atlete *incomingRunner;
       Atlete *outgoingRunner;
 
-      double GetDistanceOfFrameNum(double frameNum);
-      int FindCrossoverPoint();
+
+      //first find crosspoint
+      int _FindCrossoverPoint(); 
+      //then calculated distance of that crosspoint
+      //by knowing the distance of the frame number 
+      double _GetDistanceOfFrameNum(double frameNum);
+      double _CalculatedExchangeDistance();
+
+      double _GetAvgSpeedToPoint(Atlete *atlete);
 };
 
 #endif
