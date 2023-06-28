@@ -1,23 +1,28 @@
 #include "../inc/opencv.hpp"
 #include <fstream>
 const char* outputFile = "output.txt";
-Media::Media(char* fileName, double realDistance)
+Media::Media(char* fn, double realDistance)
 {
+   snprintf(fileName, sizeof(fileName), "%s",fn);
    SetRunnedDistance(realDistance);
+}
 
+int Media::DoAll()
+{
    int length1 = 0;
    if((length1 = GetVideo(fileName, &frames) ) < 0)
    {
       perror("%s; GetVideo\n");
-      exit(0);
+      return -1;
    }
    FILE *fp;
-   char str[100];
+   char str[250];
    snprintf(str, sizeof(str), "python3 videoHandling.py -f %s", fileName);
    fp = popen(str, "r");
-   if (fp == NULL) {
+   if (fp == NULL) 
+   {
       printf("Failed to run script\n");
-      return;
+      return -1;
    }
    pclose(fp);
    size_t i = 0;
@@ -25,12 +30,12 @@ Media::Media(char* fileName, double realDistance)
    output = GetDataFromFile(output, &i, outputFile);
    if(output == NULL)
    {
-      return;
+      return -1;
    }
    //do something with output
    if(CalculatedRealDistance() < 0)
    {
-      exit(0);
+      return -1;
    }
 
    if(output != NULL)
@@ -38,8 +43,7 @@ Media::Media(char* fileName, double realDistance)
       SetHipPoints(output, i);
       free(output);
    }
-   
-
+   return 0;
 }
 //get points of pion
 //calculated realpixel distance between poin by knonw distance & pixel amount
@@ -86,6 +90,7 @@ int Media::CalculatedRealDistance()
  */
 void Media::SetHipPoints(double *hipArray, size_t len)
 {
+   double *arrayHipPoints = (double*)malloc(sizeof(double) * len);
    for(size_t i = 0 ; i < len; i++)
    {
       if(*(hipArray+i) < 1)

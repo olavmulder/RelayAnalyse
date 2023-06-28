@@ -15,9 +15,28 @@ int main(int argc, char **argv)
    double distance = std::stod(argv[3]);
    Media incomingFilm(file, distance);   
    Media outgoingFilm(file2, distance); 
+
+   incomingFilm.DoAll();
+   outgoingFilm.DoAll();
+
    Atlete in(&incomingFilm), out(&outgoingFilm);
+
+   if(in.CalculateSpeed(incomingFilm.GetHipPoints(), 
+         incomingFilm.GetArrayHipPointLen(), 
+         incomingFilm.GetRealPixelDistance()) < 0)
+   {
+      fprintf(stderr, "Atlete::%s; CalcculateSpeed failed\n", __func__);
+      exit(0);
+   }
+   if(out.CalculateSpeed(outgoingFilm.GetHipPoints(), 
+                        outgoingFilm.GetArrayHipPointLen(), 
+                        outgoingFilm.GetRealPixelDistance()) < 0)
+   {
+      fprintf(stderr, "Atlete::%s; CalcculateSpeed failed\n", __func__);
+      exit(0);
+   }
+
    Relay r(&in, &out);
-   
 
 
    return 0;

@@ -52,40 +52,7 @@ int Relay::_FindCrossoverPoint()
    }
    return -2;
 }
-/**
- * @brief probably minus distance to begin of pion
- *    check if data of atlete is set, alse set frameRate;
- * @param frameNum 
- * @return double -1 when no data set in atlete or frameNum > data.len
- *          distance on success
- */
-double Relay::_GetDistanceOfFrameNum(double frameNum)
-{
-   double distance = 0;
-   DataAtlete *data = incomingRunner->GetData();
-   if(data->len == 0 || data->distanceAframe == NULL)
-   {
-      fprintf(stderr, "Relay::%s, data.len == 0 || data.distanceFram == NULL\n", __func__);
-      return -1;
-   }
-   if(frameNum > data->len) 
-   {
-      return -1;
-      fprintf(stderr, "Relay::%s, frameNum > data.len...\n", __func__);
-   }
-   if(incomingRunner->GetFrameRate() <= 0)
-   {
-      return -1;
-      fprintf(stderr, "Relay::%s, frmaeRate ,= 0\n", __func__);
-   }
 
-
-   for(size_t i = 0; i < frameNum; i++)
-   {
-      distance += data->distanceAframe[i];
-   }
-   return distance;
-}
 
 /**
  * @brief 
@@ -100,14 +67,9 @@ double Relay::_CalculatedExchangeDistance()
       fprintf(stderr, "Relay:%s findCross failed: %d\n", __func__, frameNum);
       return -1;
    }
-   double distance = _GetDistanceOfFrameNum(frameNum);
-   if(distance  < 0)
-   { 
-      fprintf(stderr, "Relay::%s; distance == 0", __func__);
-      return -1;
-   }
-   SetExchangeDistance(distance);
-   return distance;
+
+   
+   return 0;
 }
 /**
  * @brief 
