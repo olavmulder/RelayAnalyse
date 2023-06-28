@@ -18,7 +18,7 @@ class Media
             free(arrayHipPoints);
       };
       int DoAll();
-      
+
       double* GetDataFromFile(double* output, size_t* i, const char* file);
 
 
@@ -39,14 +39,16 @@ class Media
       size_t GetArrayHipPointLen(){return arrayHipPointLen;};
 
       void SetHipPoints(double *input, size_t len);
-      double*GetHipPoints(){return arrayHipPoints;};
- 
+      double* GetHipPoints(){return arrayHipPoints;};
+
       void SetRealPixelDistance(double rpd){realPixelDistance = rpd;};
       double GetRealPixelDistance(){return realPixelDistance;};
 
       void SetRunnedDistance(double distance){runnedDistance = distance;};
       double GetRunnedDistance(){return runnedDistance;};
       int CalculatedRealDistance();
+
+      char* GetFilename(){return fileName;};
    private:
       char fileName[100];
       int frameRate = -1;

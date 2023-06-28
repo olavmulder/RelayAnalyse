@@ -64,11 +64,6 @@ int Media::CalculatedRealDistance()
       output[i] = stod(line);
       i++;
    }
-   /*test*/
-   i  = 2;
-   output[0]  = 34;
-   output[1]  = 1600;
-   /*end test*/
    if(i != 2)
    {
       std::cout << __func__ << "i != 2" << std::endl;
@@ -90,7 +85,7 @@ int Media::CalculatedRealDistance()
  */
 void Media::SetHipPoints(double *hipArray, size_t len)
 {
-   double *arrayHipPoints = (double*)malloc(sizeof(double) * len);
+   arrayHipPoints = (double*)malloc(sizeof(double) * len);
    for(size_t i = 0 ; i < len; i++)
    {
       if(*(hipArray+i) < 1)
@@ -98,7 +93,9 @@ void Media::SetHipPoints(double *hipArray, size_t len)
       else 
          arrayHipPoints[i] = *(hipArray+i);
    }
+   assert(arrayHipPoints != NULL);
    SetArrayHipPointLen(len);
+   assert(arrayHipPoints != NULL);
 }
 /**
  * @brief 
